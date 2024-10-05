@@ -20,17 +20,53 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 
 const inputUserId = ref("");
 const userId = ref(0);
 const posts = ref([]);
 
-onMounted(async () => {
+let eventSource = null;
+
+const fetchPosts = async () => {
   const response = await fetch("http://localhost:7777/posts");
   const data = await response.json();
   posts.value = data;
+}
+
+// SSE 구독 처리
+const subscribeServerEvents = () => {
+  eventSource = new EventSource(`http://localhost:7777/notification/subscribe/${userId.value}`);
+
+  eventSource.onopen = async () => {
+    await console.log("sse opened!")
+  }
+
+  eventSource.addEventListener('like', (event) => {
+    const { data } = event;
+    window.alert(data);
+  });
+
+  eventSource.onerror = async (e) => {
+    await console.log(e)
+  }
+}
+
+onMounted(() => {
+  fetchPosts();
 });
+
+watch(userId, () => {
+  if (!userId.value) return;
+
+  subscribeServerEvents();
+})
+
+onUnmounted(() => {
+  if (eventSource) {
+    eventSource.close();
+  }
+})
 
 const submit = () => {
   if (!inputUserId.value) {
