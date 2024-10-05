@@ -38,8 +38,8 @@ const fetchPosts = async () => {
 const subscribeServerEvents = () => {
   eventSource = new EventSource(`http://localhost:7777/notification/subscribe/${userId.value}`);
 
-  eventSource.onopen = async () => {
-    await console.log("sse opened!")
+  eventSource.onopen = () => {
+    console.log("sse opened!")
   }
 
   eventSource.addEventListener('like', (event) => {
@@ -47,8 +47,8 @@ const subscribeServerEvents = () => {
     window.alert(data);
   });
 
-  eventSource.onerror = async (e) => {
-    await console.log(e)
+  eventSource.onerror = (e) => {
+    console.log(e)
   }
 }
 
